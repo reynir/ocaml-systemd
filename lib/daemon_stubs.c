@@ -19,14 +19,12 @@ CAMLprim value caml_daemon_listen_fds(value unset_environment) {
   int n = sd_listen_fds(Bool_val(unset_environment));
   if (n < 0)
     unix_error(res, "daemon_listen_fds", Nothing);
-  else if (n == 0) {
-    res = Val_int(0);		/* the empty list */
-  }
-  else {
-    /* FIXME: more than one fds received */
-    res = caml_alloc_small(2,0);
-    Field(res, 0) = Val_int(SD_LISTEN_FDS_START);
-    Field(res, 1) = Val_int(0);
+  res = Val_int(0);
+  for (int i = n - 1; i >= 0; i--) {
+    v = caml_alloc_small(2,0);
+    Field(res, 0) = Val_int(SD_LISTEN_FDS_START + i);
+    Field(res, 1) = res;
+    res = v;
   }
   CAMLreturn(res);
 }
